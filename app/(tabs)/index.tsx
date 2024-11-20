@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import useAuth from '@/hooks/useAuth';
-import LoginScreen from "@/app/screens/auth/LoginScreen";
+import LoginScreen from "@/app/(tabs)/auth/LoginScreen";
 
 const IndexScreen: React.FC = () => {
     const router = useRouter();

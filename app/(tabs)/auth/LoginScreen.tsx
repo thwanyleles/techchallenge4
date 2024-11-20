@@ -48,7 +48,7 @@ const LoginScreen: React.FC = () => {
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={[styles.button, styles.secondaryButton]}
-                    onPress={() => router.push('/screens/auth/RegisterScreen')}
+                    onPress={() => router.push('/auth/RegisterScreen')}
                 >
                     <Text style={styles.buttonText}>Registrar</Text>
                 </TouchableOpacity>

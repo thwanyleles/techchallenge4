@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, TextInput, Alert, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { RegisterRequest } from '@/interfaces/Auth';
 import authService from "@/app/services/authService";
-import { router } from "expo-router";
+import { useRouter } from 'expo-router';
 
 const RegisterScreen: React.FC = () => {
     const [username, setUsername] = useState('');
@@ -10,12 +10,14 @@ const RegisterScreen: React.FC = () => {
     const [password, setPassword] = useState('');
     const [role, setRole] = useState('');
 
+    const router = useRouter();
+
     const handleRegister = async () => {
         const registerData: RegisterRequest = { username, email, password, role };
         try {
             const response = await authService.register(registerData);
             Alert.alert('Sucesso!', 'Usuário registrado com sucesso.');
-            router.push('/screens/auth/LoginScreen');
+            router.push('/auth/LoginScreen');
         } catch (error) {
             if (error instanceof Error) {
                 Alert.alert('Erro!', error.message || 'Erro ao registrar usuário.');

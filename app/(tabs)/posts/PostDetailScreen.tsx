@@ -4,26 +4,25 @@ import { useLocalSearchParams } from 'expo-router';
 import { IPost } from "@/interfaces/Post";
 import { IComment } from "@/interfaces/Comment";
 import CommentItem from '@/components/CommentItem';
+import { useRouter } from 'expo-router';
 
 const PostDetailScreen: React.FC = () => {
     const { postId } = useLocalSearchParams();
     const postIdString = Array.isArray(postId) ? postId[0] : postId;
-
     const [post, setPost] = useState<IPost | null>(null);
     const [comments, setComments] = useState<IComment[]>([]);
     const [loading, setLoading] = useState(true);
     const [commentText, setCommentText] = useState('');
     const [authorName, setAuthorName] = useState('');
+    const router = useRouter();
 
     useEffect(() => {
-        console.log('Fetching post with ID:', postIdString);
         const fetchPost = async () => {
             try {
                 const response = await fetch(`http://localhost:3000/api/posts/${postIdString}`);
                 if (!response.ok) throw new Error('Erro ao buscar post');
                 const data = await response.json();
                 setPost(data);
-                console.log('Post loaded:', data);
             } catch (error) {
                 console.error(error);
                 Alert.alert('Erro', 'Não foi possível carregar o post.');
@@ -34,12 +33,10 @@ const PostDetailScreen: React.FC = () => {
 
         const fetchComments = async () => {
             try {
-                console.log('Fetching comments for post ID:', postIdString);
                 const response = await fetch(`http://localhost:3000/api/posts/${postIdString}/comments`);
                 if (!response.ok) throw new Error('Erro ao buscar comentários');
                 const data = await response.json();
                 setComments(data);
-                console.log('Comments loaded:', data);
             } catch (error) {
                 console.error(error);
                 Alert.alert('Erro', 'Não foi possível carregar os comentários.');
@@ -76,6 +73,12 @@ const PostDetailScreen: React.FC = () => {
         }
     };
 
+    const handleEditPost = () => {
+        if (post) {
+            router.push(`/posts/EditPostScreen?postId=${post.id}`);
+        }
+    };
+
     if (loading) {
         return <ActivityIndicator size="large" color="#FF6B6B" />;
     }
@@ -89,6 +92,8 @@ const PostDetailScreen: React.FC = () => {
             <Text style={styles.title}>{post.title}</Text>
             <Text style={styles.author}>Autor: {post.author}</Text>
             <Text style={styles.content}>{post.content}</Text>
+
+            <Button title="Editar Post" onPress={handleEditPost} color="#FF6B6B" />
 
             <TextInput
                 style={styles.input}
@@ -109,7 +114,7 @@ const PostDetailScreen: React.FC = () => {
             <FlatList
                 data={comments}
                 renderItem={({ item }) => <CommentItem comment={item} />}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item.id.toString()}
                 contentContainerStyle={styles.commentListContainer}
             />
         </View>

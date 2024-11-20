@@ -70,8 +70,29 @@ const listAllUsers = async (): Promise<User[]> => {
     }
 };
 
+const deleteUser = async (userId: string): Promise<void> => {
+    try {
+        const token = await AsyncStorage.getItem('userToken');
+        const response = await fetch(`${API_URL}/${userId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao excluir usuário');
+        }
+    } catch (error) {
+        console.error('Erro ao excluir usuário:', error);
+        throw error;
+    }
+};
+
 export default {
     getUserById,
     updateUser,
     listAllUsers,
+    deleteUser,
 };
