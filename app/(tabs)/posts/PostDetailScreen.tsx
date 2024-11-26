@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Button, TextInput, FlatList, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, Button, ActivityIndicator, Alert } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { IPost } from "@/interfaces/Post";
 import { IComment } from "@/interfaces/Comment";
-import CommentItem from '@/components/CommentItem';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import postService from '@/app/services/postService';
+import CommentSection from '@/components/CommentSection';
 
 const PostDetailScreen: React.FC = () => {
     const { postId } = useLocalSearchParams();
@@ -12,8 +14,7 @@ const PostDetailScreen: React.FC = () => {
     const [post, setPost] = useState<IPost | null>(null);
     const [comments, setComments] = useState<IComment[]>([]);
     const [loading, setLoading] = useState(true);
-    const [commentText, setCommentText] = useState('');
-    const [authorName, setAuthorName] = useState('');
+    const [userRole, setUserRole] = useState<string | null>(null);
     const router = useRouter();
 
     useEffect(() => {
@@ -43,39 +44,51 @@ const PostDetailScreen: React.FC = () => {
             }
         };
 
+        const fetchUserRole = async () => {
+            const role = await AsyncStorage.getItem('userRole');
+            setUserRole(role);
+        };
+
         if (postIdString) {
             fetchPost();
             fetchComments();
+            fetchUserRole();
         }
     }, [postIdString]);
 
-    const handleAddComment = async () => {
-        try {
-            const response = await fetch(`http://localhost:3000/api/posts/${postIdString}/comments`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ author: authorName, content: commentText }),
-            });
-
-            const newComment = await response.json();
-            if (response.ok) {
-                setComments((prevComments) => [...prevComments, newComment]);
-                setCommentText('');
-                setAuthorName('');
-            } else {
-                Alert.alert('Erro', newComment.message);
-            }
-        } catch (error) {
-            console.error('Erro ao adicionar comentário:', error);
-            Alert.alert('Erro', 'Não foi possível adicionar o comentário.');
-        }
+    const handleCommentAdded = (newComment: IComment) => {
+        setComments((prevComments) => [...prevComments, newComment]);
     };
 
-    const handleEditPost = () => {
-        if (post) {
-            router.push(`/posts/EditPostScreen?postId=${post.id}`);
+    const handleCommentDeleted = (commentId: string) => {
+        setComments((prevComments) => prevComments.filter(c => c.id !== commentId));
+    };
+
+    const handleReplyAdded = (newReply: IComment) => {
+        setComments(prevComments =>
+            prevComments.map(comment =>
+                comment.id === newReply.parent_id
+                    ? { ...comment, replies: [...(comment.replies || []), newReply] }
+                    : comment
+            )
+        );
+    };
+
+    const handleLikePost = async () => {
+        try {
+            const updatedPost = await postService.likePost(postIdString);
+            setPost((prevPost) => {
+                if (prevPost) {
+                    return {
+                        ...prevPost,
+                        likes: updatedPost.likes,
+                    };
+                }
+                return null;
+            });
+        } catch (error) {
+            console.error('Erro ao dar like no post:', error);
+            Alert.alert('Erro', 'Não foi possível dar like no post.');
         }
     };
 
@@ -93,29 +106,19 @@ const PostDetailScreen: React.FC = () => {
             <Text style={styles.author}>Autor: {post.author}</Text>
             <Text style={styles.content}>{post.content}</Text>
 
-            <Button title="Editar Post" onPress={handleEditPost} color="#FF6B6B" />
+            <Button title={`Curtir (${post?.likes || 0})`} onPress={handleLikePost} color="#FF6B6B" />
 
-            <TextInput
-                style={styles.input}
-                placeholder="Seu nome"
-                value={authorName}
-                onChangeText={setAuthorName}
-                placeholderTextColor="#A9A9A9"
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Deixe seu comentário..."
-                value={commentText}
-                onChangeText={setCommentText}
-                placeholderTextColor="#A9A9A9"
-            />
-            <Button title="Comentar" onPress={handleAddComment} color="#FF6B6B" />
+            {userRole === 'teacher' && (
+                <Button title="Editar Post" onPress={() => router.push(`/posts/EditPostScreen?postId=${post.id}`)} color="#FF6B6B" />
+            )}
 
-            <FlatList
-                data={comments}
-                renderItem={({ item }) => <CommentItem comment={item} />}
-                keyExtractor={(item) => item.id.toString()}
-                contentContainerStyle={styles.commentListContainer}
+            <CommentSection
+                comments={comments}
+                postId={postIdString}
+                userRole={userRole}
+                onCommentAdded={handleCommentAdded}
+                onCommentDeleted={handleCommentDeleted}
+                onReplyAdded={handleReplyAdded}
             />
         </View>
     );
@@ -140,23 +143,10 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         marginVertical: 12,
     },
-    input: {
-        height: 40,
-        borderColor: '#FF6B6B',
-        borderWidth: 1,
-        borderRadius: 5,
-        paddingHorizontal: 10,
-        marginBottom: 16,
-        backgroundColor: '#2B2B2B',
-        color: '#FFFFFF',
-    },
     notFound: {
         color: '#FFFFFF',
         textAlign: 'center',
         marginTop: 20,
-    },
-    commentListContainer: {
-        paddingBottom: 16,
     },
 });
 

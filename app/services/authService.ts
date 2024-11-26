@@ -49,12 +49,17 @@ const login = async (data: LoginRequest): Promise<AuthResponse> => {
             body: JSON.stringify(data),
         });
 
-        console.log("Response Status:", response.status);
         const responseData = await handleResponse(response);
 
-        console.log("Response Data:", responseData);
-
         await AsyncStorage.setItem('userToken', responseData.token);
+
+        if (responseData.user.role) {
+            await AsyncStorage.setItem('userRole', responseData.user.role);
+            console.log("Response Data:", responseData);
+        } else {
+            console.error("Papel do usuário não encontrado na resposta");
+        }
+
         return responseData;
     } catch (error) {
         if (error instanceof Error) {
@@ -72,7 +77,7 @@ const logout = async (): Promise<void> => {
 const getCurrentUser = async () => {
     const token = await AsyncStorage.getItem('userToken');
     if (!token) return null;
-    return token; // Retorna o token para validação
+    return token;
 };
 
 export default {
