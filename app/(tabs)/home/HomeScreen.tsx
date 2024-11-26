@@ -61,7 +61,7 @@ const HomeScreen: React.FC = () => {
                 <>
                     <Button title="Criar Post" onPress={() => router.push('/posts/CreatePostScreen')} color="#FF6B6B" />
                     <Button title="Sala do Professor" onPress={() => router.push('/teachers/ListTeachersScreen')} color="#FF6B6B" />
-                    <Button title={"Sala do Aluno"} onPress={() => router.push('/students/ListStudentsScreen')} color="#FF6B6B" />
+                    <Button title="Sala do Aluno" onPress={() => router.push('/students/ListStudentsScreen')} color="#FF6B6B" />
                     <Button title="Sala do Admin" onPress={() => router.push('/admin/AdminScreen')} color="#FF6B6B" />
                 </>
             )}
