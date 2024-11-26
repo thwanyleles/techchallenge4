@@ -89,6 +89,23 @@ const postService = {
 
         return await response.json();
     },
+
+    likePost: async (postId: string) => {
+        const token = await AsyncStorage.getItem('userToken');
+        const response = await fetch(`${API_URL}/${postId}/like`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao dar like no post');
+        }
+
+        return await response.json();
+    },
 };
 
 export default postService;

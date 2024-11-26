@@ -1,15 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, FlatList, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Button } from 'react-native';
 import useFetchPosts from '@/hooks/useFetchPosts';
 import { IPost } from '@/interfaces/Post';
 import SearchBar from '@/components/SearchBar';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useRouter } from "expo-router";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import authService from "@/app/services/authService";
 
 const HomeScreen: React.FC = () => {
     const { posts, loading } = useFetchPosts();
     const [searchTerm, setSearchTerm] = useState('');
+    const [userRole, setUserRole] = useState<string | null>(null)
     const router = useRouter();
+
+    useEffect(() => {
+        const fetchUserRole = async () => {
+            const role = await AsyncStorage.getItem('userRole');
+            setUserRole(role);
+        };
+        fetchUserRole();
+    }, []);
 
     const filteredPosts = posts.filter(post =>
         post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -31,6 +42,11 @@ const HomeScreen: React.FC = () => {
         </TouchableOpacity>
     );
 
+    const handleLogout = async () => {
+        await authService.logout();
+        router.push('/auth/LoginScreen');
+    };
+
     if (loading) {
         return <ActivityIndicator size="large" color="#FF6B6B" />;
     }
@@ -41,20 +57,19 @@ const HomeScreen: React.FC = () => {
                 searchTerm={searchTerm}
                 onSearch={setSearchTerm}
             />
-            {/* Botão para criar um novo post */}
-            <Button title="Criar Post" onPress={() => router.push('/posts/CreatePostScreen')} color="#FF6B6B" />
-
-            {/* Botão para acessar a sala do professor */}
-            <Button title="Sala do Professor" onPress={() => router.push('/teachers/ListTeachersScreen')} color="#FF6B6B" />
-
-            <Button title="Sala do Aluno" onPress={() => router.push('/students/ListStudentsScreen')} color="#FF6B6B"/>
-
-            <Button title="Sala do Admin" onPress={() => router.push('/admin/AdminScreen')} color="#FF6B6B"/>
+            {userRole === 'teacher' && (
+                <>
+                    <Button title="Criar Post" onPress={() => router.push('/posts/CreatePostScreen')} color="#FF6B6B" />
+                    <Button title="Sala do Professor" onPress={() => router.push('/teachers/ListTeachersScreen')} color="#FF6B6B" />
+                    <Button title="Sala do Admin" onPress={() => router.push('/admin/AdminScreen')} color="#FF6B6B" />
+                </>
+            )}
+            <Button title="Logout" onPress={handleLogout} color="#FF6B6B" />
 
             <FlatList
                 data={filteredPosts}
                 renderItem={renderPostItem}
-                keyExtractor={(item) => item.id.toString()} // Certifique-se de que item.id é uma string
+                keyExtractor={(item) => item.id.toString()}
                 contentContainerStyle={styles.listContainer}
             />
         </View>
