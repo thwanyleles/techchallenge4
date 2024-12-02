@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, Button, TextInput, FlatList, Alert, StyleSheet } from 'react-native';
+import { View, Text, TextInput, FlatList, Alert, StyleSheet, TouchableOpacity } from 'react-native';
 import { IComment } from '@/interfaces/Comment';
 import commentService from '@/app/services/commentService';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 interface CommentSectionProps {
     comments: IComment[];
@@ -62,32 +63,43 @@ const CommentSection: React.FC<CommentSectionProps> = ({
 
         return replies.map((reply) => (
             <View key={reply.id} style={styles.replyItem}>
-                <Text>{reply.content}</Text>
+                <Text style={styles.replyText}>{reply.content}</Text>
             </View>
         ));
     };
 
     const renderCommentItem = (item: IComment) => (
         <View style={styles.commentItem} key={item.id}>
-            <Text>{item.content}</Text>
-            {userRole === 'teacher' && (
-                <>
-                    <Button title="Excluir" onPress={() => handleDeleteComment(item.id)} color="#FF6B6B" />
-                    <TextInput
-                        placeholder="Responder..."
-                        value={replyText[item.id] || ''}
-                        onChangeText={(text) => setReplyText(prev => ({ ...prev, [item.id]: text }))}
-                        style={styles.input}
-                    />
-                    <Button title="Responder" onPress={() => handleReplyToComment(item.id)} color="#FF6B6B" />
-                </>
-            )}
+            <Text style={styles.commentAuthor}>{item.author}</Text>
+            <Text style={styles.commentText}>{item.content}</Text>
+            <View style={styles.commentFooter}>
+                <TextInput
+                    placeholder="Responder..."
+                    value={replyText[item.id] || ''}
+                    onChangeText={(text) => setReplyText(prev => ({ ...prev, [item.id]: text }))}
+                    style={styles.replyInput}
+                />
+                <TouchableOpacity
+                    onPress={() => handleReplyToComment(item.id)}
+                    style={styles.replyButton}
+                >
+                    <Icon name="reply" size={16} color="#FFFFFF" />
+                </TouchableOpacity>
+                {userRole === 'teacher' && (
+                    <TouchableOpacity
+                        onPress={() => handleDeleteComment(item.id)}
+                        style={styles.deleteButton}
+                    >
+                        <Icon name="trash" size={16} color="#FFFFFF" />
+                    </TouchableOpacity>
+                )}
+            </View>
             {renderReplies(item.replies || [])}
         </View>
     );
 
     return (
-        <View>
+        <View style={styles.commentCard}>
             <TextInput
                 placeholder="Seu nome"
                 value={authorName}
@@ -100,7 +112,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                 onChangeText={setCommentText}
                 style={styles.input}
             />
-            <Button title="Comentar" onPress={handleAddComment} color="#FF6B6B" />
+            <TouchableOpacity onPress={handleAddComment} style={styles.commentButton}>
+                <Text style={styles.commentButtonText}>Comentar</Text>
+            </TouchableOpacity>
 
             <FlatList
                 data={comments}
@@ -113,6 +127,21 @@ const CommentSection: React.FC<CommentSectionProps> = ({
 };
 
 const styles = StyleSheet.create({
+    commentCard: {
+        marginTop: 20,
+        padding: 16,
+        borderRadius: 8,
+        backgroundColor: '#FFFFFF',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.2,
+        shadowRadius: 2.5,
+        marginHorizontal: 20,
+    },
     input: {
         height: 40,
         borderColor: '#FF6B6B',
@@ -120,16 +149,60 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         paddingHorizontal: 10,
         marginBottom: 16,
-        backgroundColor: '#2B2B2B',
-        color: '#FFFFFF',
+        backgroundColor: '#F5F5F5',
+        color: '#1A1A1A',
     },
     commentItem: {
         marginVertical: 8,
         padding: 10,
+        borderRadius: 8,
+        backgroundColor: '#F5F5F5',
+    },
+    commentAuthor: {
+        fontWeight: 'bold',
+        color: '#333333',
+        marginBottom: 4,
+    },
+    commentText: {
+        color: '#1A1A1A',
+    },
+    commentFooter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 8,
+    },
+    deleteButton: {
+        backgroundColor: '#FF6B6B',
+        padding: 8,
+        borderRadius: 5,
+        marginLeft: 8,
+    },
+    replyInput: {
+        flex: 1,
+        height: 40,
         borderColor: '#FF6B6B',
         borderWidth: 1,
         borderRadius: 5,
-        backgroundColor: '#2B2B2B',
+        paddingHorizontal: 10,
+        backgroundColor: '#F5F5F5',
+        color: '#1A1A1A',
+        marginRight: 8,
+    },
+    replyButton: {
+        backgroundColor: '#FF6B6B',
+        padding: 8,
+        borderRadius: 5,
+        marginLeft: 8,
+    },
+    commentButton: {
+        backgroundColor: '#FF6B6B',
+        padding: 10,
+        borderRadius: 5,
+        alignItems: 'center',
+    },
+    commentButtonText: {
+        color: '#FFFFFF',
+        fontWeight: 'bold',
     },
     commentListContainer: {
         paddingBottom: 16,
@@ -139,8 +212,11 @@ const styles = StyleSheet.create({
         paddingLeft: 16,
         borderColor: '#FF6B6B',
         borderLeftWidth: 1,
-        backgroundColor: '#333333',
+        backgroundColor: '#EAEAEA',
         paddingVertical: 4,
+    },
+    replyText: {
+        color: '#1A1A1A',
     },
 });
 

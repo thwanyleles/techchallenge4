@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Button, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { IPost } from "@/interfaces/Post";
 import { IComment } from "@/interfaces/Comment";
@@ -7,6 +7,8 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import postService from '@/app/services/postService';
 import CommentSection from '@/components/CommentSection';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import Footer from '@/components/HeaderFooter/Footer';
 
 const PostDetailScreen: React.FC = () => {
     const { postId } = useLocalSearchParams();
@@ -102,15 +104,26 @@ const PostDetailScreen: React.FC = () => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>{post.title}</Text>
-            <Text style={styles.author}>Autor: {post.author}</Text>
-            <Text style={styles.content}>{post.content}</Text>
-
-            <Button title={`Curtir (${post?.likes || 0})`} onPress={handleLikePost} color="#FF6B6B" />
-
-            {userRole === 'teacher' && (
-                <Button title="Editar Post" onPress={() => router.push(`/posts/EditPostScreen?postId=${post.id}`)} color="#FF6B6B" />
-            )}
+            <View style={styles.headerContainer}>
+                <Text style={styles.postsTitle}>Detalhes do Post</Text>
+                {userRole === 'teacher' && (
+                    <TouchableOpacity onPress={() => router.push('/posts/CreatePostScreen')} style={styles.createPostButton}>
+                        <Icon name="plus" size={16} color="#FFFFFF" />
+                        <Text style={styles.createPostButtonText}>Novo Post</Text>
+                    </TouchableOpacity>
+                )}
+            </View>
+            <View style={styles.card}>
+                <Text style={styles.title}>{post.title}</Text>
+                <Text style={styles.content}>{post.content}</Text>
+                <View style={styles.footer}>
+                    <Text style={styles.author}>Autor: {post.author}</Text>
+                    <TouchableOpacity onPress={handleLikePost} style={styles.likeButton}>
+                        <Icon name="heart" size={16} color="#FF6B6B" />
+                        <Text style={styles.likeText}>Curtir ({post?.likes || 0})</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
 
             <CommentSection
                 comments={comments}
@@ -120,6 +133,13 @@ const PostDetailScreen: React.FC = () => {
                 onCommentDeleted={handleCommentDeleted}
                 onReplyAdded={handleReplyAdded}
             />
+
+            <Footer
+                userRole={userRole}
+                onHome={() => router.push('/')}
+                onLogout={() => router.push('/auth/LoginScreen')}
+                onNavigateTo={(screen: string) => router.push(screen as any)}
+            />
         </View>
     );
 };
@@ -127,21 +147,79 @@ const PostDetailScreen: React.FC = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 16,
+        margin: 0,
         backgroundColor: '#1A1A1A',
+    },
+    headerContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        marginBottom: 20,
+        paddingTop: 10,
+    },
+    postsTitle: {
+        color: '#FFFFFF',
+        fontSize: 24,
+        fontWeight: 'bold',
+    },
+    createPostButton: {
+        backgroundColor: '#FF6B6B',
+        padding: 10,
+        borderRadius: 5,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    createPostButtonText: {
+        color: '#FFFFFF',
+        fontWeight: 'bold',
+        marginLeft: 5,
+    },
+    card: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 8,
+        padding: 16,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.2,
+        shadowRadius: 2.5,
+        marginBottom: 20,
+        marginHorizontal: 20,
     },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#FFFFFF',
+        color: '#1A1A1A',
+        textAlign: 'center',
+        marginBottom: 8,
+    },
+    content: {
+        color: '#1A1A1A',
+        marginVertical: 12,
+        lineHeight: 20,
+        textAlign: 'center',
+    },
+    footer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 12,
     },
     author: {
         fontSize: 16,
         color: 'gray',
     },
-    content: {
-        color: '#FFFFFF',
-        marginVertical: 12,
+    likeButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    likeText: {
+        color: '#FF6B6B',
+        marginLeft: 5,
     },
     notFound: {
         color: '#FFFFFF',
