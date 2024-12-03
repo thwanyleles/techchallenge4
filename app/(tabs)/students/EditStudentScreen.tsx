@@ -11,7 +11,7 @@ const EditStudentScreen: React.FC = () => {
     const [student, setStudent] = useState<User | null>(null);
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
-    const [userRole, setUserRole] = useState<string | null>('teacher');
+    const [userRole] = useState<string | null>('teacher');
 
     const fetchStudent = async (id: string) => {
         try {

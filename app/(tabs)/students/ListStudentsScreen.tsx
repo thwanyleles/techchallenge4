@@ -9,7 +9,7 @@ import Footer from '@/components/HeaderFooter/Footer';
 const ListStudentsScreen: React.FC = () => {
     const [students, setStudents] = useState<User[]>([]);
     const router = useRouter();
-    const [userRole, setUserRole] = useState<string | null>('teacher');
+    const [userRole] = useState<string | null>('teacher');
 
     const fetchStudents = async () => {
         try {

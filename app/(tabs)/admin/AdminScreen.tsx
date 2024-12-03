@@ -9,7 +9,7 @@ import Footer from '@/components/HeaderFooter/Footer';
 const AdminPostListScreen: React.FC = () => {
     const [posts, setPosts] = useState<IPost[]>([]);
     const router = useRouter();
-    const [userRole, setUserRole] = useState<string | null>('teacher');
+    const [userRole] = useState<string | null>('teacher');
 
     const fetchPosts = async () => {
         try {
